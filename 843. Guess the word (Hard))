@@ -1,0 +1,68 @@
+class Solution {
+public:
+    void findSecretWord(vector<string>& words, Master& master) {
+        int n = words.size();
+        vector<string> candidates = words;
+        
+        for (int attempt = 0; attempt < 30; attempt++) {
+            if (candidates.empty()) return;
+            
+            string guess = chooseNextGuessImproved(candidates);
+            
+            int matches = master.guess(guess);
+            
+            if (matches == 6) return;
+            
+            vector<string> newCandidates;
+            for (const string& word : candidates) {
+                if (countMatches(guess, word) == matches) {
+                    newCandidates.push_back(word);
+                }
+            }
+            
+            candidates = newCandidates;
+        }
+    }
+    
+private:
+    int countMatches(const string& word1, const string& word2) {
+        int matches = 0;
+        for (int i = 0; i < 6; i++) {
+            if (word1[i] == word2[i]) {
+                matches++;
+            }
+        }
+        return matches;
+    }
+    
+    string chooseNextGuessImproved(const vector<string>& candidates) {
+        if (candidates.size() <= 2) return candidates[0];
+        
+        vector<vector<int>> freqs(6, vector<int>(26, 0));
+        for (const string& word : candidates) {
+            for (int i = 0; i < 6; i++) {
+                freqs[i][word[i] - 'a']++;
+            }
+        }
+        
+        double bestScore = -1;
+        string bestGuess = candidates[0];
+        
+        for (const string& guess : candidates) {
+            double score = 0;
+            for (int i = 0; i < 6; i++) {
+                score += freqs[i][guess[i] - 'a'];
+            }
+            
+            set<char> uniqueChars(guess.begin(), guess.end());
+            score /= (7 - uniqueChars.size());
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestGuess = guess;
+            }
+        }
+        
+        return bestGuess;
+    }
+};
